@@ -2,6 +2,7 @@ import sys
 import time
 import psutil
 import numpy as np
+from basic import basic_sequence_alignment_algo
 
 ### Helper fxns ###
 def read_input_file(file_path: str):
@@ -73,6 +74,66 @@ ALPHAS = {
 DELTA = 30
 ##########################
 
+TRIVIAL = 2
+
+def alignment_cost_column(X, Y):
+    m = len(X)
+    n = len(Y)
+
+    # Use only 2 columns
+    previous_col = np.zeros(n+1, dtype=int)
+    current_col = np.zeros(n+1, dtype=int)
+
+    # Aligning 0 chars of X with k chars of Y
+    for k in range(0, n+1):
+        previous_col[k] = k * DELTA
+
+    # Recurrence
+    for i in range(1, m+1):
+        current_col[0] = i * DELTA
+        for k in range(1, n+1):
+            current_col[k] = min(previous_col[k-1] + ALPHAS[X[i-1]][Y[k-1]], 
+                                 previous_col[k] + DELTA,
+                                 current_col[k-1] + DELTA)
+        for k in range(0, n+1):
+            previous_col[k] = current_col[k]
+    return previous_col
+
+def divide_and_conquer_alignment(X, Y):
+    m = len(X)
+    n = len(Y)
+
+    # Base case
+    if m <= TRIVIAL or n <= TRIVIAL:
+        result = basic_sequence_alignment_algo(X, Y)
+        return [result[1], result[2]]
+    
+    # Divide step, split X in half
+    X_mid = m // 2
+    X_L = X[0:X_mid]
+    X_R = X[X_mid:m]
+
+    # Get optimal cost of alignment between X_L and (y1 ... yk)
+    left_costs = alignment_cost_column(X_L, Y)
+
+    # Get optimal cost of alignment between X_R and (yn-k ... yn)
+    right_costs = alignment_cost_column(X_R[::-1], Y[::-1])[::-1]
+
+    # Find split point k in Y that minimizes total cost
+    final_k = 0
+    final_cost = left_costs[0] + right_costs[0]
+    for k in range(1, n+1):
+        total = left_costs[k] + right_costs[k]
+        if total < final_cost:
+            final_k = k
+            final_cost = total
+    
+    # Recurse on both halfs
+    left = divide_and_conquer_alignment(X_L, Y[0:final_k])
+    right = divide_and_conquer_alignment(X_R, Y[final_k:n])
+    return [left[0] + right[0], left[1] + right[1]]
+
+
 def efficient_sequence_alignment_algo(s: str, t: str):
     """
     Given two sequences, check for alignment
@@ -82,43 +143,20 @@ def efficient_sequence_alignment_algo(s: str, t: str):
         a list containing the alignment cost, the alignment of the first str, and 
         the alignment of the second str
     """
-    m, n = len(s), len(t)
+    # Get alignment
+    alignment = divide_and_conquer_alignment(s, t)
+    aligned_s = alignment[0]
+    aligned_t = alignment[1]
 
-    # DP matrix
-    OPT = np.zeros((m+1, n+1), dtype=int)
-    
-    # Initialization, slides in Lecture 8 - DP part 2
-    # TODO
-
-    # Recurrence DP
-    # TODO
-
-    # Cost is determined via DP itself
-    cost = OPT[-1][-1]
-
-    # Backtracking to get the aligned strs
-    aligned_s = []
-    aligned_t = []
-
-    i, j = m, n
-    while i > 0 or j > 0:
-        if i > 0 and j > 0 and OPT[i][j] == OPT[i-1][j-1] + ALPHAS[s[i-1]][t[j-1]]:
-            aligned_s.append(s[i-1])
-            aligned_t.append(t[j-1])
-            i -= 1
-            j -= 1
-        elif i > 0 and OPT[i][j] == OPT[i-1][j] + DELTA:
-            aligned_s.append(s[i-1])
-            aligned_t.append("_")
-            i -= 1
+    # Compute cost
+    cost = 0
+    for i in range(len(aligned_s)):
+        if aligned_s[i] == "_" or aligned_t[i] == "_":
+            cost += DELTA
         else:
-            aligned_s.append("_")
-            aligned_t.append(t[j-1])
-            j -= 1
-    aligned_s.reverse()
-    aligned_t.reverse()
+            cost += ALPHAS[aligned_s[i]][aligned_t[i]]
 
-    return [cost, ''.join(aligned_s), ''.join(aligned_t)]
+    return [cost, aligned_s, aligned_t]
 
 if __name__ == "__main__":
     input_file_path = sys.argv[1]

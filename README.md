@@ -4,7 +4,7 @@ Sequence Alignment Problem: Basic DP version and the Memory-Efficient DP w/ Divi
 By: Drew Carroll and Eisuke Hirota, for CSCI570 Spring 2026
 
 ## Todos
-- [ ] basic.py
+- [x] basic.py
     - [x] file input/output
         - [x] input: parse input files to get pair of sequences
         - [x] output: cost, first, second, time, memory
@@ -14,7 +14,7 @@ By: Drew Carroll and Eisuke Hirota, for CSCI570 Spring 2026
         - [x] second string alignment
         - [x] time
         - [x] memory in kilobytes
-    - [ ] graph stuff 
-- [ ] efficient.py
+- [x] efficient.py
+- [x] graph stuff 
 - [ ] summary.pdf
 - [x] 2 shell files

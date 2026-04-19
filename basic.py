@@ -57,10 +57,10 @@ def process_memory():
 
 def time_wrapper(s: str, t: str):
     start_time = time.time() 
-    algo_output = basic_sequence_alignment_algo(s, t)
+    algo_output, memory_consumed = basic_sequence_alignment_algo(s, t)
     end_time = time.time()
     time_taken = (end_time - start_time)*1000
-    return time_taken, algo_output
+    return time_taken, algo_output, memory_consumed
 ###################
 
 # Provided penalties
@@ -126,16 +126,16 @@ def basic_sequence_alignment_algo(s: str, t: str):
             j -= 1
     aligned_s.reverse()
     aligned_t.reverse()
+    memory_consumed = process_memory()
 
-    return [cost, ''.join(aligned_s), ''.join(aligned_t)]
+    return [cost, ''.join(aligned_s), ''.join(aligned_t)], memory_consumed
 
 if __name__ == "__main__":
     input_file_path = sys.argv[1]
     output_file_path = sys.argv[2]
 
     s, t = read_input_file(input_file_path)
-    time_taken, algo_output = time_wrapper(s, t)
-    memory_used = process_memory()
+    time_taken, algo_output, memory_used = time_wrapper(s, t)
     write_output = algo_output
     write_output.append(time_taken)
     write_output.append(memory_used)

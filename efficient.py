@@ -74,7 +74,7 @@ ALPHAS = {
 DELTA = 30
 ##########################
 
-TRIVIAL = 2
+TRIVIAL = 100
 
 def alignment_cost_column(X, Y):
     m = len(X)
@@ -91,12 +91,12 @@ def alignment_cost_column(X, Y):
     # Recurrence
     for i in range(1, m+1):
         current_col[0] = i * DELTA
+        alpha_row = ALPHAS[X[i-1]]
         for k in range(1, n+1):
-            current_col[k] = min(previous_col[k-1] + ALPHAS[X[i-1]][Y[k-1]], 
-                                 previous_col[k] + DELTA,
-                                 current_col[k-1] + DELTA)
-        for k in range(0, n+1):
-            previous_col[k] = current_col[k]
+            current_col[k] = min(previous_col[k-1] + alpha_row[Y[k-1]], 
+                             previous_col[k] + DELTA,
+                             current_col[k-1] + DELTA)
+        previous_col, current_col = current_col, previous_col
     return previous_col
 
 def divide_and_conquer_alignment(X, Y):
